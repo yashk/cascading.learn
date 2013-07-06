@@ -26,7 +26,15 @@ public class Mapping {
 	 * @see http://docs.cascading.org/cascading/2.1/userguide/html/ch08s07.html
 	 */
 	public static FlowDef filterWithExpression(Tap<?, ?, ?> source, Tap<?, ?, ?> sink) {
-		return null;
+        String exp = "!line.contains(\"Hadoop\")";
+        Pipe base =new Pipe("base");
+        ExpressionFilter filter = new ExpressionFilter(exp,String.class);
+        base =new  Each(base,new Fields("line"),filter);
+
+        return FlowDef.flowDef()//
+                .addSource(base, source) //
+                .addTail(base)//
+                .addSink(base, sink);
 	}
 	
 	/**
@@ -40,7 +48,15 @@ public class Mapping {
 	 * @see http://docs.cascading.org/cascading/2.1/userguide/html/ch08s07.html
 	 */
 	public static FlowDef transformWithExpression(Tap<?, ?, ?> source, Tap<?, ?, ?> sink) {
-		return null;
+        String exp = "line.toLowerCase()";
+        Pipe base =new Pipe("base");
+        ExpressionFunction function = new ExpressionFunction(new Fields("line"),exp,String.class);
+        base =new  Each(base,new Fields("line"),function);
+
+        return FlowDef.flowDef()//
+                .addSource(base, source) //
+                .addTail(base)//
+                .addSink(base, sink);
 	}
 	
 	/**
