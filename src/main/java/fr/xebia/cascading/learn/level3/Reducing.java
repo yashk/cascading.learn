@@ -9,6 +9,8 @@ import cascading.pipe.Every;
 import cascading.pipe.GroupBy;
 import cascading.pipe.Pipe;
 import cascading.pipe.assembly.CountBy;
+import cascading.pipe.assembly.AggregateBy;
+import cascading.pipe.assembly.SumBy;
 import cascading.tap.Tap;
 import cascading.tuple.Fields;
 
@@ -29,7 +31,14 @@ public class Reducing {
 	 * @see http://docs.cascading.org/cascading/2.1/userguide/html/ch03s03.html#N205C2
 	 */
 	public static FlowDef aggregate(Tap<?, ?, ?> source, Tap<?, ?, ?> sink) {
-		return null;
+
+        Pipe pipe = new Pipe("base");
+        pipe = new GroupBy(pipe,new Fields("word"));
+        pipe = new Every(pipe,new Fields("word"),new Count(),new Fields("word","count"));
+        return FlowDef.flowDef()//
+                .addSource(pipe, source) //
+                .addTail(pipe)//
+                .addSink(pipe, sink);
 	}
 	
 	/**
@@ -42,6 +51,12 @@ public class Reducing {
 	 * @see http://docs.cascading.org/cascading/2.1/userguide/html/ch07s08.html
 	 */
 	public static FlowDef efficientlyAggregate(Tap<?, ?, ?> source, Tap<?, ?, ?> sink) {
-		return null;
+        Pipe pipe = new Pipe("base");
+        pipe = new CountBy(pipe,new Fields("word"),new Fields("count"));
+
+        return FlowDef.flowDef()//
+                .addSource(pipe, source) //
+                .addTail(pipe)//
+                .addSink(pipe, sink);
 	}
 }
