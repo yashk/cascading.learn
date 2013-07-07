@@ -30,10 +30,22 @@ public class NonLinearDataflow {
 	 */
 	public static FlowDef cogroup(Tap<?, ?, ?> presidentsSource, Tap<?, ?, ?> partiesSource,
 			Tap<?, ?, ?> sink) {
-		return null;
-	}
-	
-	/**
+
+        Pipe pres = new Pipe("pres");
+        Pipe party = new Pipe("party");
+
+        Fields joinField = new Fields("year");
+        Fields declared = new Fields("year_pres","president","year_party","party");
+        Pipe coGroup = new CoGroup(pres, joinField, party, joinField,declared, new InnerJoin());
+        Pipe discard = new Discard(coGroup,new Fields("year_pres","year_party"));
+        Pipe sinkPipe = new Pipe("sink",discard);
+        return FlowDef.flowDef()//
+                .addSource(pres, presidentsSource)
+                .addSource(party, partiesSource)//
+                .addTailSink(sinkPipe,sink);
+    }
+
+    /**
 	 * Split the input in order use a different sink for each party. There is no
 	 * specific operator for that, use the same Pipe instance as the parent.
 	 * You will need to create (and bind) one named Pipe per sink.
@@ -46,9 +58,24 @@ public class NonLinearDataflow {
 	 * In a different context, one could use {@link TemplateTap} in order to arrive to a similar results.
 	 * @see http://docs.cascading.org/cascading/2.1/userguide/htmlsingle/#N214FF
 	 */
-	public static FlowDef split(Tap<?, ?, ?> source,
+
+    // not able to imlp as of now TODO
+    public static FlowDef split(Tap<?, ?, ?> source,
 			Tap<?, ?, ?> gaullistSink, Tap<?, ?, ?> republicanSink, Tap<?, ?, ?> socialistSink) {
-		return null;
-	}
-	
+
+        Pipe parent = new Pipe("parent");
+
+        Pipe gaul = new Each(parent, new ExpressionFilter("party.equals(\"gaullist\")", String.class));
+        Pipe rep = new Each(parent, new ExpressionFilter("party.equals(\"republican\")", String.class));
+        Pipe soc = new Each(parent, new ExpressionFilter("party.equals(\"socialist\")", String.class));
+
+        return FlowDef.flowDef()//
+                .addSource(parent, source)
+                .addSink(gaul, gaullistSink)
+                .addSink(rep, republicanSink)
+                .addSink(soc, socialistSink);
+
+
+    }
+
 }
